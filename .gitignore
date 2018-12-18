@@ -23,6 +23,8 @@
 *mvnw*
 *.cmd
 .DS_Store
+*.pub
+dsasoft
 
 ### NetBeans ###
 /nbproject/private/
