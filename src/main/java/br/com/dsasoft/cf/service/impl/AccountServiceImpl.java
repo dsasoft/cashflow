@@ -6,13 +6,13 @@ import java.util.Optional;
 import javax.ws.rs.NotFoundException;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import br.com.dsasoft.cf.db.AccountRepository;
 import br.com.dsasoft.cf.document.Account;
 import br.com.dsasoft.cf.service.AccountService;
 
-@Component
+@Service
 public class AccountServiceImpl implements AccountService {
 
 	@Autowired
@@ -34,7 +34,7 @@ public class AccountServiceImpl implements AccountService {
 	}
 
 	@Override
-	public Account findById(String accountId) {
+	public Account findById(final String accountId) {
 		Optional<Account> op = repo.findById(accountId);
 
 		if (op.isPresent())

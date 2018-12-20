@@ -1,21 +1,23 @@
 package br.com.dsasoft.cf.config;
 
+import java.util.Arrays;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
-import org.springframework.data.mongodb.repository.config.EnableMongoRepositories;
+import org.springframework.data.mongodb.core.MongoTemplate;
 
-import com.mongodb.MongoClient;
+import com.mongodb.MongoClientSettings;
+import com.mongodb.MongoCredential;
 import com.mongodb.ServerAddress;
-import com.mongodb.client.MongoDatabase;
-
-import br.com.dsasoft.cf.db.AccountRepository;
+import com.mongodb.client.MongoClient;
+import com.mongodb.client.MongoClients;
 
 // TODO WebMvcConfigurerAdapter
 @Configuration
-@EnableMongoRepositories(basePackageClasses = { AccountRepository.class })
+//@EnableMongoRepositories(basePackageClasses = { AccountRepository.class })
 @PropertySource(value = "classpath:application.properties")
 public class AppConfig {
 
@@ -50,20 +52,59 @@ public class AppConfig {
 		return url;
 	}
 
+	public String getDatabase() {
+		return database;
+	}
+
 	@Bean
 	public static PropertySourcesPlaceholderConfigurer propertyConfig() {
 		return new PropertySourcesPlaceholderConfigurer();
 	}
 
+//	public MongoClient mongoClient() {
+////		MongoClient mongoClient = new MongoClient(new ServerAddress(
+////	"mongodb+srv://kay:myRealPassword@cluster0.mongodb.net/admin");
+//
+//		MongoClientURI uri = new MongoClientURI(
+//				"mongodb://" + this.getMongoUser() + ":" + this.getMongoPass() + "@" + this.getUrl() + "/cashflow");
+//
+//		System.out.println("\n\n\n*****************************\n\n");
+//		System.out.println(" >>>>>>> " + uri);
+//		System.out.println("\n\n\n*****************************\n\n");
+//
+//		MongoClient mongoClient = new MongoClient(uri);
+////		MongoDatabase database = mongoClient.getDatabase("test");
+//
+//		return mongoClient;
+//	}
+
 	@Bean
-	public MongoDatabase mongoDB() {
-		MongoClient mongoClient = new MongoClient(new ServerAddress(
-				"mongodb+srv://" + this.getMongoUser() + ":" + this.getMongoPass() + ":@" + this.getUrl()));
+	public MongoClient mongoClient2() {
 
-		MongoDatabase database = mongoClient.getDatabase(this.database);
+		MongoClient mongoClient = MongoClients.create("mongodb://" + this.getMongoUser() + ":" + this.getMongoPass()
+				+ "@" + this.getUrl() + "/?authSource=cashflow");
 
-		mongoClient.close();
+		return mongoClient;
+	}
 
-		return database;
+	public MongoClient mongoClient3() {
+
+		char[] password = getMongoPass().toCharArray();
+
+		MongoCredential credential = MongoCredential.createCredential(getMongoUser(), getDatabase(), password);
+
+		MongoClient mongoClient = MongoClients.create(MongoClientSettings.builder()
+				.applyToClusterSettings(builder -> builder.hosts(Arrays.asList(new ServerAddress(getUrl(), 27017))))
+				.credential(credential)
+
+				.build());
+
+		return mongoClient;
+	}
+
+	@Bean(name = "mongoTemplate")
+	public MongoTemplate getMongoTemplate() {
+		return new MongoTemplate(mongoClient3(), getDatabase());
+
 	}
 }

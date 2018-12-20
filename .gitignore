@@ -25,6 +25,7 @@
 .DS_Store
 *.pub
 dsasoft
+.vscode
 
 ### NetBeans ###
 /nbproject/private/

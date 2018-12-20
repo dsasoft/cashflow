@@ -3,7 +3,7 @@ package br.com.dsasoft.cf.document;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-@Document
+@Document(collection = "costcenter")
 public class CostCenter {
 
 	@Id
