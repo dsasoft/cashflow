@@ -9,7 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import br.com.dsasoft.cf.db.AccountRepository;
-import br.com.dsasoft.cf.document.Account;
+import br.com.dsasoft.cf.db.document.Account;
 import br.com.dsasoft.cf.service.AccountService;
 
 @Service

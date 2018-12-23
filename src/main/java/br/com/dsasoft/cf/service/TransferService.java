@@ -4,7 +4,7 @@ import java.math.BigDecimal;
 
 import org.springframework.stereotype.Service;
 
-import br.com.dsasoft.cf.document.Account;
+import br.com.dsasoft.cf.db.document.Account;
 
 @Service
 public interface TransferService {

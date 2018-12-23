@@ -2,7 +2,7 @@ package br.com.dsasoft.cf.service;
 
 import java.util.List;
 
-import br.com.dsasoft.cf.document.CostCenter;
+import br.com.dsasoft.cf.db.document.CostCenter;
 
 public interface CostCenterService {
 

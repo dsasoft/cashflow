@@ -7,8 +7,8 @@ import java.util.Date;
 
 import javax.validation.constraints.Min;
 
-import br.com.dsasoft.cf.document.Account;
-import br.com.dsasoft.cf.document.CostCenter;
+import br.com.dsasoft.cf.db.document.Account;
+import br.com.dsasoft.cf.db.document.CostCenter;
 
 public class IncomeVO {
 

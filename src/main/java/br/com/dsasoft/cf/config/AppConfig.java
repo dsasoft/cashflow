@@ -1,6 +1,7 @@
 package br.com.dsasoft.cf.config;
 
 import java.util.Arrays;
+import java.util.concurrent.TimeUnit;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -8,18 +9,27 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.repository.config.EnableMongoRepositories;
 
+import com.mongodb.MongoClientOptions;
 import com.mongodb.MongoClientSettings;
 import com.mongodb.MongoCredential;
 import com.mongodb.ServerAddress;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 
+import br.com.dsasoft.cf.db.AccountRepository;
+import br.com.dsasoft.cf.db.CostCenterRepository;
+
 // TODO WebMvcConfigurerAdapter
 @Configuration
-//@EnableMongoRepositories(basePackageClasses = { AccountRepository.class })
+@EnableMongoRepositories(basePackageClasses = { AccountRepository.class,
+		CostCenterRepository.class })
 @PropertySource(value = "classpath:application.properties")
 public class AppConfig {
+
+	@Value("${app.name}")
+	private String appName;
 
 	@Value("${app.version}")
 	private String appVersion;
@@ -35,6 +45,10 @@ public class AppConfig {
 
 	@Value("${mongodb.database}")
 	private String database;
+
+	public String getAppName() {
+		return appName;
+	}
 
 	public String getAppVersion() {
 		return appVersion;
@@ -61,28 +75,11 @@ public class AppConfig {
 		return new PropertySourcesPlaceholderConfigurer();
 	}
 
-//	public MongoClient mongoClient() {
-////		MongoClient mongoClient = new MongoClient(new ServerAddress(
-////	"mongodb+srv://kay:myRealPassword@cluster0.mongodb.net/admin");
-//
-//		MongoClientURI uri = new MongoClientURI(
-//				"mongodb://" + this.getMongoUser() + ":" + this.getMongoPass() + "@" + this.getUrl() + "/cashflow");
-//
-//		System.out.println("\n\n\n*****************************\n\n");
-//		System.out.println(" >>>>>>> " + uri);
-//		System.out.println("\n\n\n*****************************\n\n");
-//
-//		MongoClient mongoClient = new MongoClient(uri);
-////		MongoDatabase database = mongoClient.getDatabase("test");
-//
-//		return mongoClient;
-//	}
-
-	@Bean
+//	@Bean
 	public MongoClient mongoClient2() {
 
-		MongoClient mongoClient = MongoClients.create("mongodb://" + this.getMongoUser() + ":" + this.getMongoPass()
-				+ "@" + this.getUrl() + "/?authSource=cashflow");
+		MongoClient mongoClient = MongoClients.create("mongodb://" + this.getMongoUser() + ":"
+				+ this.getMongoPass() + "@" + this.getUrl() + "/?authSource=cashflow");
 
 		return mongoClient;
 	}
@@ -91,18 +88,25 @@ public class AppConfig {
 
 		char[] password = getMongoPass().toCharArray();
 
-		MongoCredential credential = MongoCredential.createCredential(getMongoUser(), getDatabase(), password);
+		MongoCredential credential = MongoCredential.createCredential(getMongoUser(),
+				getDatabase(), password);
 
-		MongoClient mongoClient = MongoClients.create(MongoClientSettings.builder()
-				.applyToClusterSettings(builder -> builder.hosts(Arrays.asList(new ServerAddress(getUrl(), 27017))))
-				.credential(credential)
+		MongoClientOptions.Builder opt = MongoClientOptions.builder();
+		opt.connectTimeout(Integer.MAX_VALUE);
+		opt.serverSelectionTimeout(Integer.MAX_VALUE);
 
-				.build());
+		MongoClient mongoClient = MongoClients
+				.create(MongoClientSettings.builder().applicationName(getAppName())
+						.applyToClusterSettings(builder -> builder
+								.hosts(Arrays.asList(new ServerAddress(getUrl(), 27017)))
+								.serverSelectionTimeout(600000l, TimeUnit.MILLISECONDS))
+						.credential(credential)
 
+						.build());
 		return mongoClient;
 	}
 
-	@Bean(name = "mongoTemplate")
+//	@Bean(name = "mongoTemplate")
 	public MongoTemplate getMongoTemplate() {
 		return new MongoTemplate(mongoClient3(), getDatabase());
 

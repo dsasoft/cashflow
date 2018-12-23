@@ -26,6 +26,8 @@
 *.pub
 dsasoft
 .vscode
+.json
+*.json
 
 ### NetBeans ###
 /nbproject/private/
