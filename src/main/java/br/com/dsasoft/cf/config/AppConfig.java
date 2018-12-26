@@ -9,8 +9,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.repository.config.EnableMongoRepositories;
 
+import com.mongodb.ConnectionString;
 import com.mongodb.MongoClientOptions;
 import com.mongodb.MongoClientSettings;
 import com.mongodb.MongoCredential;
@@ -18,13 +18,10 @@ import com.mongodb.ServerAddress;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 
-import br.com.dsasoft.cf.db.AccountRepository;
-import br.com.dsasoft.cf.db.CostCenterRepository;
-
 // TODO WebMvcConfigurerAdapter
 @Configuration
-@EnableMongoRepositories(basePackageClasses = { AccountRepository.class,
-		CostCenterRepository.class })
+//@EnableMongoRepositories(basePackageClasses = { AccountRepository.class,
+//		CostCenterRepository.class })
 @PropertySource(value = "classpath:application.properties")
 public class AppConfig {
 
@@ -40,8 +37,17 @@ public class AppConfig {
 	@Value("${mongodb.pass}")
 	private String mongoPass;
 
-	@Value("${mongodb.url}")
-	private String url;
+	@Value("${mongodb.cluster.url0}")
+	private String cluster0Url;
+
+	@Value("${mongodb.cluster.url0}")
+	private String cluster1Url;
+
+	@Value("${mongodb.cluster.url0}")
+	private String cluster2Url;
+
+	@Value("${mongodb.cluster.port}")
+	private Integer port;
 
 	@Value("${mongodb.database}")
 	private String database;
@@ -62,8 +68,20 @@ public class AppConfig {
 		return mongoPass;
 	}
 
-	public String getUrl() {
-		return url;
+	public String getCluster0Url() {
+		return cluster0Url;
+	}
+
+	public String getCluster1Url() {
+		return cluster1Url;
+	}
+
+	public String getCluster2Url() {
+		return cluster2Url;
+	}
+
+	public Integer getPort() {
+		return port;
 	}
 
 	public String getDatabase() {
@@ -75,13 +93,12 @@ public class AppConfig {
 		return new PropertySourcesPlaceholderConfigurer();
 	}
 
-//	@Bean
-	public MongoClient mongoClient2() {
-
-		MongoClient mongoClient = MongoClients.create("mongodb://" + this.getMongoUser() + ":"
-				+ this.getMongoPass() + "@" + this.getUrl() + "/?authSource=cashflow");
-
-		return mongoClient;
+	public MongoClient mongoClient() {
+		return MongoClients.create(new ConnectionString("mongodb://" + getMongoUser() + ":"
+				+ getMongoPass() + "@" + getCluster0Url() + ":" + getPort() + ","
+				+ getCluster1Url() + ":" + getPort() + "," + getCluster2Url() + ":" + getPort()
+				+ "/" + getDatabase() + "?ssl=true&replicaSet=Cluster0-shard-0&authSource=admin&"
+				+ "retryWrites=true"));
 	}
 
 	public MongoClient mongoClient3() {
@@ -95,20 +112,24 @@ public class AppConfig {
 		opt.connectTimeout(Integer.MAX_VALUE);
 		opt.serverSelectionTimeout(Integer.MAX_VALUE);
 
-		MongoClient mongoClient = MongoClients
-				.create(MongoClientSettings.builder().applicationName(getAppName())
-						.applyToClusterSettings(builder -> builder
-								.hosts(Arrays.asList(new ServerAddress(getUrl(), 27017)))
-								.serverSelectionTimeout(600000l, TimeUnit.MILLISECONDS))
-						.credential(credential)
+		MongoClient mongoClient = MongoClients.create(MongoClientSettings.builder()
+				.applicationName(getAppName())
+				.applyToClusterSettings(builder -> builder
+						.hosts(Arrays.asList(new ServerAddress(getCluster0Url(), getPort()),
+								new ServerAddress(getCluster1Url(), getPort()),
+								new ServerAddress(getCluster2Url(), getPort())))
+						.requiredReplicaSetName("Cluster0-shard-0")
 
-						.build());
+						.serverSelectionTimeout(600000l, TimeUnit.MILLISECONDS))
+				.credential(credential)
+
+				.build());
 		return mongoClient;
 	}
 
-//	@Bean(name = "mongoTemplate")
+	@Bean(name = "mongoTemplate")
 	public MongoTemplate getMongoTemplate() {
-		return new MongoTemplate(mongoClient3(), getDatabase());
+		return new MongoTemplate(mongoClient(), getDatabase());
 
 	}
 }
