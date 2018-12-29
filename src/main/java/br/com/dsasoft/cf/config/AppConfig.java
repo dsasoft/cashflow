@@ -49,6 +49,12 @@ public class AppConfig {
 	@Value("${mongodb.cluster.port}")
 	private Integer port;
 
+	@Value("${mongodb.cluster.replicaSet}")
+	private String replicaSetName;
+
+	@Value("${mongodb.cluster.authSource}")
+	private String authSource;
+
 	@Value("${mongodb.database}")
 	private String database;
 
@@ -80,6 +86,14 @@ public class AppConfig {
 		return cluster2Url;
 	}
 
+	public String getReplicaSetName() {
+		return replicaSetName;
+	}
+
+	public String getAuthSource() {
+		return authSource;
+	}
+
 	public Integer getPort() {
 		return port;
 	}
@@ -97,10 +111,11 @@ public class AppConfig {
 		return MongoClients.create(new ConnectionString("mongodb://" + getMongoUser() + ":"
 				+ getMongoPass() + "@" + getCluster0Url() + ":" + getPort() + ","
 				+ getCluster1Url() + ":" + getPort() + "," + getCluster2Url() + ":" + getPort()
-				+ "/" + getDatabase() + "?ssl=true&replicaSet=Cluster0-shard-0&authSource=admin&"
-				+ "retryWrites=true"));
+				+ "/" + getDatabase() + "?ssl=true&replicaSet=" + getReplicaSetName()
+				+ "&authSource=" + getAuthSource() + "&retryWrites=true"));
 	}
 
+	@Deprecated
 	public MongoClient mongoClient3() {
 
 		char[] password = getMongoPass().toCharArray();

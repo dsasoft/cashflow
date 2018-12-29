@@ -4,7 +4,7 @@ import java.util.List;
 
 import br.com.dsasoft.cf.db.document.CostCenter;
 
-public interface CostCenterService {
+public interface CostCenterService extends DefaultBasicService<CostCenter> {
 
 	public CostCenter save(final CostCenter costCenter);
 
